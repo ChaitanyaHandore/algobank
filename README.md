@@ -80,14 +80,22 @@ pytest -v       # run all tests
 ### Recommended Deployment Options:
 
 #### 1. **Render** (Recommended - Free Tier Available)
-1. Sign up at [render.com](https://render.com)
-2. Click "New +" → "Web Service"
-3. Connect your GitHub repository: `https://github.com/ChaitanyaHandore/algobank`
-4. Configure:
-   - **Build Command:** `cd AlgoBank && pip install -r requirements.txt`
-   - **Start Command:** `cd AlgoBank && python app.py`
+
+📖 **Detailed Guide:** See [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md) for complete step-by-step instructions.
+
+**Quick Steps:**
+1. Sign up at [render.com](https://render.com) (use GitHub for easy signup)
+2. Click **New +** → **Web Service**
+3. Connect GitHub and select repository: `ChaitanyaHandore/algobank`
+4. **Important Settings:**
+   - **Root Directory:** `AlgoBank` ⚠️ (Very important!)
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `python app.py`
    - **Environment:** Python 3
-5. Click "Create Web Service"
+   - **Environment Variable:** `FLASK_ENV=production`
+5. Click **Create Web Service**
+6. Wait 2-5 minutes for deployment
+7. Your app will be live at: `https://algobank.onrender.com`
 
 #### 2. **Railway** (Easy & Free Tier)
 1. Sign up at [railway.app](https://railway.app)

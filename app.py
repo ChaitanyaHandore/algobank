@@ -100,7 +100,12 @@ def test():
 @app.route('/favicon.ico')
 def favicon():
     """Serve favicon"""
-    return app.send_static_file('favicon.svg')
+    return app.send_static_file('favicon.svg'), 200, {'Content-Type': 'image/svg+xml'}
+
+@app.route('/favicon.svg')
+def favicon_svg():
+    """Serve favicon SVG"""
+    return app.send_static_file('favicon.svg'), 200, {'Content-Type': 'image/svg+xml'}
 
 @app.route('/')
 def index():

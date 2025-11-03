@@ -97,7 +97,7 @@ pytest -v       # run all tests
 
 #### 3. **Heroku** (Requires Credit Card)
 1. Install Heroku CLI
-2. Create `Procfile`: `web: cd AlgoBank && python app.py`
+2. Procfile already included: `web: python app.py`
 3. Deploy: `git push heroku main`
 
 #### 4. **Vercel** (For Static + Serverless)
@@ -119,9 +119,10 @@ pytest -v       # run all tests
 
 For quick deployment, you can use these files:
 
-**For Render/Railway:**
+**For Render/Railway/Heroku:**
 - `requirements.txt` - Already included
-- `Procfile` (optional): `web: cd AlgoBank && python app.py`
+- `Procfile` - Already included: `web: python app.py`
+- `runtime.txt` - Python 3.12.0 specification
 
 **Environment Variables:**
 - `PORT` - Automatically set by most platforms

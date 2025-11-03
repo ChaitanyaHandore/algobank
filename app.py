@@ -59,6 +59,11 @@ def test():
     """Simple test route to verify server is working"""
     return "<h1>Server is working! <a href='/login'>Go to Login</a></h1>"
 
+@app.route('/favicon.ico')
+def favicon():
+    """Serve favicon"""
+    return app.send_static_file('favicon.svg')
+
 @app.route('/')
 def index():
     try:

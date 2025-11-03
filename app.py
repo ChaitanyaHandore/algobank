@@ -563,6 +563,14 @@ def profile_page():
 
 if __name__ == '__main__':
     import os
+    # Production-ready configuration
     port = int(os.environ.get('PORT', 8080))  # Use 8080 instead of 5000 to avoid AirPlay conflict
-    app.run(debug=True, host='127.0.0.1', port=port)
+    host = os.environ.get('HOST', '0.0.0.0')  # Listen on all interfaces for production
+    debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    
+    # For production, disable debug mode
+    if os.environ.get('FLASK_ENV') == 'production':
+        debug = False
+    
+    app.run(debug=debug, host=host, port=port)
 

@@ -127,3 +127,91 @@ For quick deployment, you can use these files:
 **Environment Variables:**
 - `PORT` - Automatically set by most platforms
 - `FLASK_ENV` - Set to `production` for production deployments
+
+---
+
+## 🌐 Custom Domain Setup
+
+All recommended platforms support custom domains with free SSL certificates. Here's how to set it up:
+
+### Step 1: Purchase a Domain
+- **Recommended providers:** Namecheap, GoDaddy, Google Domains, Cloudflare
+- Domain examples: `algobank.com`, `algobank.io`, `myalgobank.com`
+
+### Step 2: Configure DNS Records
+
+#### For Render:
+1. Go to your service dashboard → **Settings** → **Custom Domains**
+2. Click **Add Custom Domain**
+3. Enter your domain (e.g., `algobank.com` or `www.algobank.com`)
+4. Render will provide DNS records to add:
+   - **For apex domain** (`algobank.com`):
+     - Type: `ALIAS` or `A` record
+     - Name: `@` or leave blank
+     - Value: Render's provided IP/URL
+   - **For subdomain** (`www.algobank.com`):
+     - Type: `CNAME`
+     - Name: `www`
+     - Value: Render's provided CNAME
+5. Add these records in your domain registrar's DNS settings
+6. Wait for DNS propagation (5-30 minutes)
+7. Render automatically provisions SSL certificate (HTTPS)
+
+#### For Railway:
+1. Go to **Settings** → **Domains**
+2. Click **Generate Domain**
+3. Copy the provided DNS record
+4. Add to your domain registrar:
+   - Type: `CNAME`
+   - Name: `@` (or `www` for subdomain)
+   - Value: Railway's provided CNAME
+5. Railway auto-configures SSL
+
+#### For Heroku:
+1. Install Heroku CLI: `heroku domains:add algobank.com`
+2. Get DNS target: `heroku domains`
+3. Add DNS records:
+   - **For apex:** Add `ALIAS` or `A` record pointing to Heroku
+   - **For subdomain:** Add `CNAME` record
+4. Heroku provides SSL automatically
+
+### Step 3: Flask Configuration (Already Updated)
+
+The app is already configured for production deployment:
+- Uses environment variables for `PORT` and `HOST`
+- Automatically disables debug mode in production
+- Listens on all interfaces (`0.0.0.0`) for deployment platforms
+
+### Step 4: DNS Record Examples
+
+**For Render (Apex Domain):**
+```
+Type: ALIAS or A
+Name: @
+Value: (provided by Render)
+TTL: 3600
+```
+
+**For Subdomain:**
+```
+Type: CNAME
+Name: www
+Value: your-app.onrender.com
+TTL: 3600
+```
+
+### Step 5: Verify Setup
+1. Wait 5-30 minutes for DNS propagation
+2. Check DNS: Use `nslookup algobank.com` or online tools like `whatsmydns.net`
+3. Visit your custom domain: `https://algobank.com`
+4. Verify SSL: Should show padlock icon in browser
+
+### Common Issues:
+- **DNS not resolving:** Wait longer (can take up to 48 hours, usually 5-30 min)
+- **SSL not working:** Wait for automatic provisioning (usually 1-5 minutes after DNS)
+- **Mixed content:** Ensure all URLs use HTTPS in your code
+
+### Free Domain Options:
+- **Freenom** (.tk, .ml, .ga, .cf domains - free but less reliable)
+- **GitHub Student Pack** (includes free domain from Namecheap)
+- **Subdomains:** Use free subdomains from services like `noip.com`

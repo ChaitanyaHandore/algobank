@@ -134,7 +134,16 @@ For quick deployment, you can use these files:
 
 All recommended platforms support custom domains with free SSL certificates. Here's how to set it up:
 
-### Step 1: Purchase a Domain
+### Step 1: Domain Setup
+
+**Option A: Use Subdomain on Existing Domain** (Recommended if you have a domain)
+- If you already have a domain (e.g., `chaitanyahandore.com`), you can add a subdomain
+- Example: `algobank.chaitanyahandore.com` or `bank.chaitanyahandore.com`
+- No additional cost - uses your existing domain
+- Your main site stays at `chaitanyahandore.com`
+- AlgoBank runs on `algobank.chaitanyahandore.com`
+
+**Option B: Purchase a New Domain**
 - **Recommended providers:** Namecheap, GoDaddy, Google Domains, Cloudflare
 - Domain examples: `algobank.com`, `algobank.io`, `myalgobank.com`
 

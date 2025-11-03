@@ -2,6 +2,21 @@
 
 ## Custom Domain Setup Guide
 
+### 🎯 Using Existing Domain (chaitanyahandore.com)
+
+If you already have a domain like `chaitanyahandore.com` with your portfolio, you can add AlgoBank as a **subdomain**:
+
+- **Your Portfolio:** `https://chaitanyahandore.com`
+- **AlgoBank:** `https://algobank.chaitanyahandore.com` or `https://bank.chaitanyahandore.com`
+
+**Benefits:**
+- ✅ No additional domain cost
+- ✅ Both sites share the same domain
+- ✅ Professional subdomain structure
+- ✅ Easy to remember
+
+---
+
 ### Quick Start for Custom Domain
 
 1. **Deploy on Render/Railway/Heroku** (follow README deployment section)

@@ -1,1 +1,1 @@
-web: cd AlgoBank && python app.py
+web: python app.py

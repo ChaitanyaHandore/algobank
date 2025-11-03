@@ -13,9 +13,47 @@ import json
 import csv
 from io import StringIO
 from flask import make_response
+import os
+import secrets
 
 app = Flask(__name__)
-app.secret_key = 'algobank-secret-key-change-in-production'
+# Security: Use environment variable for secret key, generate random for dev
+app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
+
+# Security: Configure secure session cookies
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') == 'production'
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
+# Security: Enforce HTTPS - Redirect HTTP to HTTPS
+@app.before_request
+def force_https():
+    """Redirect HTTP to HTTPS in production - Render automatically does this, but this ensures it"""
+    if os.environ.get('FLASK_ENV') == 'production':
+        # Render sets X-Forwarded-Proto header, check that
+        forwarded_proto = request.headers.get('X-Forwarded-Proto', '')
+        # If it's explicitly HTTP, redirect to HTTPS
+        if forwarded_proto == 'http':
+            url = request.url.replace('http://', 'https://', 1)
+            return redirect(url, code=301)
+        # Also check if request URL is HTTP
+        if request.url.startswith('http://'):
+            url = request.url.replace('http://', 'https://', 1)
+            return redirect(url, code=301)
+
+# Security: Add security headers
+@app.after_request
+def set_security_headers(response):
+    """Add security headers to all responses"""
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    if os.environ.get('FLASK_ENV') == 'production':
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
+    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data: https:;"
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+    return response
 
 # Global instances
 ledger = Ledger()
@@ -180,9 +218,20 @@ def api_transfer():
         return jsonify({'error': 'Not authenticated'}), 401
     
     data = request.json
+    if not data:
+        return jsonify({'error': 'Invalid request data'}), 400
+    
     from_account = session.get('account_id')
     to_account = data.get('to_account')
-    amount = Decimal(str(data.get('amount', 0)))
+    
+    # Input validation and sanitization
+    if not to_account or not isinstance(to_account, str):
+        return jsonify({'error': 'Invalid recipient account'}), 400
+    
+    try:
+        amount = Decimal(str(data.get('amount', 0)))
+    except (ValueError, TypeError):
+        return jsonify({'error': 'Invalid amount format'}), 400
     
     if amount <= 0:
         return jsonify({'error': 'Invalid amount'}), 400

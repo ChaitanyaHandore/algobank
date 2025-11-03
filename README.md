@@ -61,7 +61,68 @@ pytest -v       # run all tests
 
 - **🏠 Dashboard** - View account balance and quick actions
 - **💸 Money Transfer** - Transfer funds between accounts
-- **📊 Transaction History** - View all past transactions
+- **📊 Transaction History** - View all past transactions with downloadable statements
+- **💳 Virtual Cards** - View card details with show/hide functionality
 - **🏧 ATM Calculator** - Optimize note dispensation using DP
 - **🌐 Bank Routing** - Find cheapest interbank routes using Dijkstra's
 - **🕵️ Fraud Detection** - Detect connected suspicious accounts using DSU
+- **💰 Investments** - Fixed Deposits, Recurring Deposits, Tax Saver Deposits
+- **🏦 Loans** - Various loan types with interest rates and terms
+- **⚙️ Services** - Mobile recharge, bill payment, add payees, and more
+- **👤 Profile** - User account management and security settings
+
+---
+
+## 🚀 Deployment
+
+**⚠️ Important:** GitHub Pages only supports static websites. Since AlgoBank is a Flask application (requires Python server), it **cannot be deployed directly on GitHub Pages**.
+
+### Recommended Deployment Options:
+
+#### 1. **Render** (Recommended - Free Tier Available)
+1. Sign up at [render.com](https://render.com)
+2. Click "New +" → "Web Service"
+3. Connect your GitHub repository: `https://github.com/ChaitanyaHandore/algobank`
+4. Configure:
+   - **Build Command:** `cd AlgoBank && pip install -r requirements.txt`
+   - **Start Command:** `cd AlgoBank && python app.py`
+   - **Environment:** Python 3
+5. Click "Create Web Service"
+
+#### 2. **Railway** (Easy & Free Tier)
+1. Sign up at [railway.app](https://railway.app)
+2. Click "New Project" → "Deploy from GitHub repo"
+3. Select your repository
+4. Railway will auto-detect Flask and deploy
+
+#### 3. **Heroku** (Requires Credit Card)
+1. Install Heroku CLI
+2. Create `Procfile`: `web: cd AlgoBank && python app.py`
+3. Deploy: `git push heroku main`
+
+#### 4. **Vercel** (For Static + Serverless)
+1. Install Vercel CLI: `npm i -g vercel`
+2. Create `vercel.json`:
+```json
+{
+  "builds": [{
+    "src": "AlgoBank/app.py",
+    "use": "@vercel/python"
+  }]
+}
+```
+3. Deploy: `vercel`
+
+---
+
+## 📝 Deployment Files
+
+For quick deployment, you can use these files:
+
+**For Render/Railway:**
+- `requirements.txt` - Already included
+- `Procfile` (optional): `web: cd AlgoBank && python app.py`
+
+**Environment Variables:**
+- `PORT` - Automatically set by most platforms
+- `FLASK_ENV` - Set to `production` for production deployments

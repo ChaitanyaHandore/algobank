@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}ATM Calculator - AlgoBank{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="section-box">
+        <div class="section-box-header">
+            <div>
+                <h3>ATM Note Optimizer</h3>
+                <p class="page-subtitle" style="margin-top: 0.5rem; margin-bottom: 0;">Calculate minimum notes needed for withdrawal</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <h3>Withdrawal Calculator</h3>
+            </div>
+            <div class="card-body">
+                <form id="atmForm" onsubmit="calculateATM(event)">
+                    <div class="form-group">
+                        <label for="withdrawAmount">Amount to Withdraw (EUR)</label>
+                        <input type="number" id="withdrawAmount" name="amount" min="1" required placeholder="Enter amount">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Calculate</button>
+                </form>
+                <div id="atmResult" class="result-section"></div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3>Available Notes</h3>
+            </div>
+            <div class="card-body">
+                <div class="notes-info">
+                    <p>€500, €200, €100, €50, €20, €10</p>
+                    <p class="info-text">Each denomination available: 10 notes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function calculateATM(e) {
+        e.preventDefault();
+        const amount = parseInt(document.getElementById('withdrawAmount').value);
+        const resultDiv = document.getElementById('atmResult');
+        
+        resultDiv.innerHTML = '<p class="loading">Calculating...</p>';
+        
+        fetch('/api/atm', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({amount: amount})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.min_notes === -1) {
+                resultDiv.innerHTML = `
+                    <div class="result-box error">
+                        <h4>Unable to withdraw</h4>
+                        <p>Not enough notes available for this amount</p>
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="result-box success">
+                        <h4>Minimum Notes Required</h4>
+                        <div class="result-value">${data.min_notes} notes</div>
+                        <p class="result-info">For €${data.amount}</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(err => {
+            resultDiv.innerHTML = '<p class="error">Error calculating</p>';
+        });
+    }
+</script>
+{% endblock %}
+

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AlgoBank{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if session and session.get('user_id') %}
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>🏦 AlgoBank</h1>
+                <span class="nav-subtitle">Member FDIC | Equal Housing Lender</span>
+            </div>
+            <div class="nav-links">
+                <a href="{{ url_for('dashboard') }}" class="nav-link">Home</a>
+                <a href="{{ url_for('transactions_page') }}" class="nav-link">Transactions</a>
+                <div class="dropdown">
+                    <button class="nav-link dropdown-btn">Services ▼</button>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('services_page') }}">Quick Services</a>
+                        <a href="{{ url_for('cards_page') }}">My Cards</a>
+                        <a href="{{ url_for('loans_page') }}">Loans</a>
+                        <a href="{{ url_for('investments_page') }}">Investments</a>
+                        <a href="{{ url_for('statement_page') }}">Statements</a>
+                        <a href="{{ url_for('atm_page') }}">ATM Locator</a>
+                        <a href="{{ url_for('routing_page') }}">Wire Transfer</a>
+                    </div>
+                </div>
+                <a href="{{ url_for('profile_page') }}" class="nav-link">Profile</a>
+                <a href="{{ url_for('logout') }}" class="nav-link">Sign Out</a>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+    
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2025 AlgoBank. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <span>|</span>
+                <a href="#">Terms of Service</a>
+                <span>|</span>
+                <a href="#">Security</a>
+                <span>|</span>
+                <a href="#">Help & Support</a>
+            </div>
+            <p class="footer-disclaimer">AlgoBank is a demonstration project. Member FDIC. Equal Housing Lender.</p>
+        </div>
+    </footer>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Fraud Detection - AlgoBank{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="section-box">
+        <div class="section-box-header">
+            <div>
+                <h3>Fraud Detection System</h3>
+                <p class="page-subtitle" style="margin-top: 0.5rem; margin-bottom: 0;">Detect connections between suspicious accounts</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <h3>Check Connection</h3>
+            </div>
+            <div class="card-body">
+                <form id="fraudCheckForm" onsubmit="checkConnection(event)">
+                    <div class="form-group">
+                        <label for="account1">Account 1</label>
+                        <input type="text" id="account1" name="account1" required placeholder="Enter account ID">
+                    </div>
+                    <div class="form-group">
+                        <label for="account2">Account 2</label>
+                        <input type="text" id="account2" name="account2" required placeholder="Enter account ID">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Check Connection</button>
+                </form>
+                <div id="fraudCheckResult" class="result-section"></div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3>Link Accounts</h3>
+            </div>
+            <div class="card-body">
+                <form id="fraudLinkForm" onsubmit="linkAccounts(event)">
+                    <div class="form-group">
+                        <label for="linkAccount1">Account 1</label>
+                        <input type="text" id="linkAccount1" name="account1" required placeholder="Enter account ID">
+                    </div>
+                    <div class="form-group">
+                        <label for="linkAccount2">Account 2</label>
+                        <input type="text" id="linkAccount2" name="account2" required placeholder="Enter account ID">
+                    </div>
+                    <button type="submit" class="btn btn-warning btn-block">Link Accounts</button>
+                </form>
+                <div id="fraudLinkResult" class="result-section"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function checkConnection(e) {
+        e.preventDefault();
+        const account1 = document.getElementById('account1').value;
+        const account2 = document.getElementById('account2').value;
+        const resultDiv = document.getElementById('fraudCheckResult');
+        
+        resultDiv.innerHTML = '<p class="loading">Checking...</p>';
+        
+        fetch('/api/fraud/check', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({account1: account1, account2: account2})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.connected) {
+                resultDiv.innerHTML = `
+                    <div class="result-box warning">
+                        <h4>⚠️ Connected</h4>
+                        <p>These accounts are linked in the fraud network</p>
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="result-box success">
+                        <h4>✓ Not Connected</h4>
+                        <p>No connection found between these accounts</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(err => {
+            resultDiv.innerHTML = '<p class="error">Error: ' + (err.message || 'Unknown error') + '</p>';
+        });
+    }
+    
+    function linkAccounts(e) {
+        e.preventDefault();
+        const account1 = document.getElementById('linkAccount1').value;
+        const account2 = document.getElementById('linkAccount2').value;
+        const resultDiv = document.getElementById('fraudLinkResult');
+        
+        resultDiv.innerHTML = '<p class="loading">Linking...</p>';
+        
+        fetch('/api/fraud/link', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({account1: account1, account2: account2})
+        })
+        .then(r => r.json())
+        .then(data => {
+            resultDiv.innerHTML = `
+                <div class="result-box ${data.merged ? 'success' : 'info'}">
+                    <h4>${data.merged ? '✓ Linked' : 'Already Connected'}</h4>
+                    <p>${data.message}</p>
+                </div>
+            `;
+        })
+        .catch(err => {
+            resultDiv.innerHTML = '<p class="error">Error linking accounts</p>';
+        });
+    }
+</script>
+{% endblock %}
+

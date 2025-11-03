@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Account Statement - AlgoBank{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="section-box">
+        <div class="section-box-header">
+            <h3>Account Statement</h3>
+            <div>
+                <select id="yearSelect" class="form-control" style="display: inline-block; width: auto; margin-right: 0.5rem;">
+                    <option value="">All Years</option>
+                    <option value="2025" selected>2025</option>
+                    <option value="2024">2024</option>
+                </select>
+                <select id="monthSelect" class="form-control" style="display: inline-block; width: auto; margin-right: 0.5rem;">
+                    <option value="">All Months</option>
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+                <button class="btn btn-primary" onclick="loadStatement()">View Statement</button>
+                <button class="btn btn-secondary" onclick="downloadStatement()">📥 Download CSV</button>
+            </div>
+        </div>
+        <div class="section-box-content">
+            <div id="statement-container">
+                <p class="loading">Select period and click View Statement</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function loadStatement() {
+        const month = document.getElementById('monthSelect').value;
+        const year = document.getElementById('yearSelect').value;
+        const container = document.getElementById('statement-container');
+        
+        container.innerHTML = '<p class="loading">Loading statement...</p>';
+        
+        fetch('/api/statement', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({month: month, year: year})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.transactions && data.transactions.length > 0) {
+                let html = '<table class="statement-table"><thead><tr><th>Date</th><th>Description</th><th>Counterparty</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead><tbody>';
+                data.transactions.forEach(t => {
+                    html += `<tr>
+                        <td>${t.date}</td>
+                        <td>${t.description}</td>
+                        <td>${t.counterparty}</td>
+                        <td class="${t.debit ? 'debit' : ''}">${t.debit || '-'}</td>
+                        <td class="${t.credit ? 'credit' : ''}">${t.credit || '-'}</td>
+                        <td>€${parseFloat(t.balance).toFixed(2)}</td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<p class="empty-state">No transactions found for selected period</p>';
+            }
+        });
+    }
+    
+    function downloadStatement() {
+        const month = document.getElementById('monthSelect').value;
+        const year = document.getElementById('yearSelect').value;
+        window.location.href = `/api/statement/download?month=${month || ''}&year=${year || ''}`;
+    }
+</script>
+<style>
+.statement-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+.statement-table th {
+    background: var(--secondary-color);
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border-color);
+}
+.statement-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.statement-table tr:hover {
+    background: var(--secondary-color);
+}
+.statement-table .debit {
+    color: var(--danger-color);
+    font-weight: 500;
+}
+.statement-table .credit {
+    color: var(--success-color);
+    font-weight: 500;
+}
+</style>
+{% endblock %}
+

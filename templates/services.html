@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Services - AlgoBank{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="section-box">
+        <div class="section-box-header">
+            <div>
+                <h3>Banking Services</h3>
+                <p class="page-subtitle">Quick access to essential banking services</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="services-grid">
+        <div class="service-card" onclick="showRechargeModal()">
+            <div class="service-icon">📱</div>
+            <div class="service-title">Mobile Recharge</div>
+            <div class="service-desc">Recharge your mobile phone</div>
+        </div>
+        
+        <div class="service-card" onclick="showBillPayModal()">
+            <div class="service-icon">💳</div>
+            <div class="service-title">Bill Payment</div>
+            <div class="service-desc">Pay utility bills</div>
+        </div>
+        
+        <div class="service-card" onclick="showPayeeModal()">
+            <div class="service-icon">👤</div>
+            <div class="service-title">Add Payee</div>
+            <div class="service-desc">Add beneficiary for transfers</div>
+        </div>
+        
+        <div class="service-card" onclick="showFlightsModal()">
+            <div class="service-icon">✈️</div>
+            <div class="service-title">Book Flights</div>
+            <div class="service-desc">Book domestic & international flights</div>
+        </div>
+    </div>
+</div>
+
+<!-- Recharge Modal -->
+<div id="rechargeModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('rechargeModal')">&times;</span>
+        <h2>Mobile Recharge</h2>
+        <form onsubmit="doRecharge(event)">
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" id="rechargePhone" required placeholder="Enter phone number">
+            </div>
+            <div class="form-group">
+                <label>Amount (EUR)</label>
+                <input type="number" id="rechargeAmount" step="0.01" min="1" required placeholder="Enter amount">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Recharge</button>
+        </form>
+        <div id="rechargeResult"></div>
+    </div>
+</div>
+
+<!-- Bill Pay Modal -->
+<div id="billModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('billModal')">&times;</span>
+        <h2>Bill Payment</h2>
+        <form onsubmit="doBillPay(event)">
+            <div class="form-group">
+                <label>Biller Name</label>
+                <input type="text" id="billerName" required placeholder="e.g., Electricity, Water">
+            </div>
+            <div class="form-group">
+                <label>Bill Number</label>
+                <input type="text" id="billNumber" required placeholder="Enter bill number">
+            </div>
+            <div class="form-group">
+                <label>Amount (EUR)</label>
+                <input type="number" id="billAmount" step="0.01" min="1" required placeholder="Enter amount">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Pay Bill</button>
+        </form>
+        <div id="billResult"></div>
+    </div>
+</div>
+
+<!-- Add Payee Modal -->
+<div id="payeeModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('payeeModal')">&times;</span>
+        <h2>Add Payee</h2>
+        <form onsubmit="addPayee(event)">
+            <div class="form-group">
+                <label>Payee Name</label>
+                <input type="text" id="payeeName" required placeholder="Enter payee name">
+            </div>
+            <div class="form-group">
+                <label>Account Number</label>
+                <input type="text" id="payeeAccount" required placeholder="Enter account number">
+            </div>
+            <div class="form-group">
+                <label>IFSC Code</label>
+                <input type="text" id="payeeIFSC" placeholder="Enter IFSC/BIC code">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Add Payee</button>
+        </form>
+        <div id="payeeResult"></div>
+    </div>
+</div>
+
+<!-- Flights Modal -->
+<div id="flightsModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('flightsModal')">&times;</span>
+        <h2>Book Flights</h2>
+        <div style="padding: 2rem; text-align: center;">
+            <p>Flight booking service coming soon!</p>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">This feature will be available in the next update.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+function showRechargeModal() { document.getElementById('rechargeModal').style.display = 'block'; }
+function showBillPayModal() { document.getElementById('billModal').style.display = 'block'; }
+function showPayeeModal() { document.getElementById('payeeModal').style.display = 'block'; }
+function showFlightsModal() { document.getElementById('flightsModal').style.display = 'block'; }
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+    document.getElementById(modalId).querySelector('form').reset();
+    document.getElementById(modalId).querySelector('[id$="Result"]').innerHTML = '';
+}
+
+function doRecharge(e) {
+    e.preventDefault();
+    const phone = document.getElementById('rechargePhone').value;
+    const amount = parseFloat(document.getElementById('rechargeAmount').value);
+    
+    fetch('/api/recharge', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({phone: phone, amount: amount})
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('rechargeResult').innerHTML = 
+            data.success ? `<p class="success">✓ ${data.message}</p>` : `<p class="error">✗ ${data.error}</p>`;
+        if (data.success) setTimeout(() => closeModal('rechargeModal'), 2000);
+    });
+}
+
+function doBillPay(e) {
+    e.preventDefault();
+    const biller = document.getElementById('billerName').value;
+    const amount = parseFloat(document.getElementById('billAmount').value);
+    
+    fetch('/api/billpay', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({biller: biller, amount: amount})
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('billResult').innerHTML = 
+            data.success ? `<p class="success">✓ ${data.message}</p>` : `<p class="error">✗ ${data.error}</p>`;
+        if (data.success) setTimeout(() => closeModal('billModal'), 2000);
+    });
+}
+
+function addPayee(e) {
+    e.preventDefault();
+    fetch('/api/payee/add', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            name: document.getElementById('payeeName').value,
+            account: document.getElementById('payeeAccount').value,
+            ifsc: document.getElementById('payeeIFSC').value
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('payeeResult').innerHTML = 
+            data.success ? `<p class="success">✓ ${data.message}</p>` : `<p class="error">✗ ${data.error}</p>`;
+        if (data.success) setTimeout(() => closeModal('payeeModal'), 2000);
+    });
+}
+
+window.onclick = function(e) {
+    if (e.target.classList.contains('modal')) {
+        e.target.style.display = 'none';
+    }
+}
+</script>
+
+<style>
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.service-card {
+    background: linear-gradient(135deg, #909090 0%, #a0a0a0 50%, #959595 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    border: 2px solid rgba(212, 175, 55, 0.3);
+    box-shadow: var(--shadow-md), 0 0 20px rgba(144, 144, 144, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg), 0 0 30px rgba(212, 175, 55, 0.3);
+    border-color: rgba(212, 175, 55, 0.6);
+}
+
+.service-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.service-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: var(--royal-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+
+.service-desc {
+    font-size: 0.9rem;
+    color: #4a4a4a;
+    font-weight: 500;
+}
+</style>
+{% endblock %}
+

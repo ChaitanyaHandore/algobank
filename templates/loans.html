@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Loans - AlgoBank{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="section-box">
+        <div class="section-box-header">
+            <div>
+                <h3>Loan Products</h3>
+                <p class="page-subtitle">Choose the loan that fits your needs</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="loans-grid">
+        {% for loan in loan_types %}
+        <div class="loan-card">
+            <div class="loan-header">
+                <h4>{{ loan.name }}</h4>
+                <div class="interest-rate">{{ loan.interest }}</div>
+            </div>
+            <div class="loan-details">
+                <div class="loan-detail-item">
+                    <span class="detail-label">Loan Amount</span>
+                    <span class="detail-value">€{{ "{:,}".format(loan.min_amount) }} - €{{ "{:,}".format(loan.max_amount) }}</span>
+                </div>
+                <div class="loan-detail-item">
+                    <span class="detail-label">Tenure</span>
+                    <span class="detail-value">{{ loan.tenure }}</span>
+                </div>
+                <div class="loan-detail-item">
+                    <span class="detail-label">Interest Rate</span>
+                    <span class="detail-value highlight">{{ loan.interest }} p.a.</span>
+                </div>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="applyLoan('{{ loan.name }}')">Apply Now</button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function applyLoan(loanName) {
+    if (confirm(`Would you like to apply for ${loanName}?`)) {
+        alert('Loan application submitted! Our team will contact you soon.');
+    }
+}
+</script>
+
+<style>
+.loans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.loan-card {
+    background: linear-gradient(135deg, #909090 0%, #a0a0a0 50%, #959595 100%);
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 2px solid rgba(212, 175, 55, 0.3);
+    box-shadow: var(--shadow-md), 0 0 20px rgba(144, 144, 144, 0.2);
+    transition: all 0.3s ease;
+}
+
+.loan-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg), 0 0 30px rgba(212, 175, 55, 0.3);
+    border-color: rgba(212, 175, 55, 0.6);
+}
+
+.loan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+}
+
+.loan-header h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    margin: 0;
+    background: var(--royal-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+.interest-rate {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--success-color);
+}
+
+.loan-details {
+    margin-bottom: 1.5rem;
+}
+
+.loan-detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(74, 74, 74, 0.3);
+}
+
+.loan-detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    color: #4a4a4a;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.detail-value {
+    font-weight: 600;
+    color: #2a2a2a;
+}
+
+.detail-value.highlight {
+    background: var(--royal-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+</style>
+{% endblock %}
+

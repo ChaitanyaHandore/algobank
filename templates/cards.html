@@ -1,0 +1,505 @@
+{% extends "base.html" %}
+
+{% block title %}Cards - AlgoBank{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="section-box">
+        <div class="section-box-header">
+            <div>
+                <h3>My Cards</h3>
+                <p class="page-subtitle">Manage your debit and credit cards</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="cards-grid">
+        <!-- Virtual Card -->
+        <div class="card-display-wrapper">
+            <div class="card-container-with-toggle">
+                <button class="eye-toggle-outside" onclick="toggleCardVisibility()" id="eyeButton" title="Show/Hide Card Details">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </button>
+                <div class="virtual-card" id="virtualCard">
+                    <div class="card-header-section">
+                        <div class="card-logo-section">
+                            <div class="amex-logo">AlgoBank</div>
+                        </div>
+                        <div class="card-chip-section">
+                            <div class="card-chip"></div>
+                        </div>
+                    </div>
+                    <div class="card-number-section">
+                        <div class="card-number-display" id="cardNumber">
+                            <span class="card-digit">****</span>
+                            <span class="card-digit">****</span>
+                            <span class="card-digit">****</span>
+                            <span class="card-digit" id="lastFour">3092</span>
+                        </div>
+                    </div>
+                    <div class="card-details-section">
+                        <div class="card-holder">
+                            <div class="card-label">CARDHOLDER</div>
+                            <div class="card-value" id="cardHolder">{{ session.get('user_id', 'USER').upper() }}</div>
+                        </div>
+                        <div class="card-expiry">
+                            <div class="card-label">EXPIRES</div>
+                            <div class="card-value" id="cardExpiry">12/27</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Card Actions -->
+        <div class="card-actions-section">
+            <div class="card-info-box">
+                <h4>Card Information</h4>
+                <div class="info-row">
+                    <span class="info-label">Card Number:</span>
+                    <span class="info-value" id="infoCardNumber">**** **** **** 3092</span>
+                    <button class="btn-icon" onclick="copyCardNumber()">📋</button>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">CVV:</span>
+                    <span class="info-value" id="infoCVV">***</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Expiry Date:</span>
+                    <span class="info-value">12/2027</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Status:</span>
+                    <span class="badge badge-success">Active</span>
+                </div>
+            </div>
+            
+            <div class="card-actions-box">
+                <h4>Card Actions</h4>
+                <button class="btn btn-primary btn-block" onclick="showOrderCardModal()">
+                    🎴 Order Physical Card
+                </button>
+                <button class="btn btn-secondary btn-block" onclick="freezeCard()">
+                    🔒 Freeze Card
+                </button>
+                <button class="btn btn-secondary btn-block" onclick="showCardSettings()">
+                    ⚙️ Card Settings
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Physical Card Modal -->
+<div id="orderCardModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeOrderModal()">&times;</span>
+        <h2>Order Physical Card</h2>
+        <div class="order-card-info">
+            <p>Order a physical debit card linked to your account.</p>
+            <div class="form-group">
+                <label>Card Type</label>
+                <select id="cardType" class="form-control">
+                    <option value="standard">Standard Card (Free)</option>
+                    <option value="premium">Premium Gold Card (€25)</option>
+                    <option value="platinum">Platinum Card (€50)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Delivery Address</label>
+                <textarea id="deliveryAddress" class="form-control" rows="3" placeholder="Enter your delivery address"></textarea>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="submitCardOrder()">
+                Order Card
+            </button>
+            <div id="orderCardResult"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+
+.card-display-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card-container-with-toggle {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+}
+
+.eye-toggle-outside {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #141414 100%);
+    border: 2px solid rgba(212, 175, 55, 0.5);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 15px rgba(212, 175, 55, 0.3);
+}
+
+.eye-toggle-outside:hover {
+    background: linear-gradient(135deg, #252525 0%, #1f1f1f 100%);
+    border-color: rgba(212, 175, 55, 0.8);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 25px rgba(212, 175, 55, 0.5);
+    transform: scale(1.1);
+}
+
+.eye-toggle-outside svg {
+    color: var(--gold-color);
+    transition: all 0.3s ease;
+}
+
+.eye-toggle-outside.eye-closed svg {
+    color: var(--silver-color);
+}
+
+.virtual-card {
+    width: 100%;
+    max-width: 420px;
+    height: 260px;
+    background: linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #000000 100%);
+    border: 3px solid rgba(212, 175, 55, 0.4);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8), 0 0 40px rgba(212, 175, 55, 0.2);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.virtual-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 2px,
+            rgba(212, 175, 55, 0.03) 2px,
+            rgba(212, 175, 55, 0.03) 4px
+        );
+    pointer-events: none;
+}
+
+.virtual-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.card-header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    z-index: 1;
+    margin-bottom: 1.5rem;
+}
+
+.card-logo-section {
+    flex: 1;
+}
+
+.amex-logo {
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1.8rem;
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.6), 0 2px 4px rgba(0, 0, 0, 0.8);
+    font-family: 'Arial', sans-serif;
+}
+
+.card-chip-section {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.card-chip {
+    width: 50px;
+    height: 40px;
+    background: linear-gradient(135deg, #d4af37 0%, #f4e4bc 50%, #d4af37 100%);
+    border-radius: 6px;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.card-chip::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    height: 2px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 1px;
+}
+
+.card-chip::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    right: 10px;
+    height: 2px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 1px;
+    transform: translateY(-50%);
+}
+
+.card-number-section {
+    z-index: 1;
+    margin: 1.5rem 0;
+}
+
+.card-number-display {
+    display: flex;
+    gap: 1.2rem;
+    font-size: 1.8rem;
+    letter-spacing: 0.25em;
+    font-weight: 400;
+    color: #ffffff;
+    font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+}
+
+.card-digit {
+    min-width: 70px;
+    text-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+}
+
+.card-digit.hidden {
+    filter: blur(10px);
+    user-select: none;
+    opacity: 0.5;
+}
+
+.card-details-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    z-index: 1;
+    margin-top: auto;
+}
+
+.card-holder, .card-expiry {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.card-label {
+    font-size: 0.65rem;
+    color: rgba(192, 192, 192, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 500;
+}
+
+.card-value {
+    font-size: 1.1rem;
+    color: #ffffff;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+}
+
+.card-actions-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.card-info-box, .card-actions-box {
+    background: linear-gradient(135deg, #1a1a1a 0%, #141414 100%);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+}
+
+.card-info-box h4, .card-actions-box h4 {
+    color: var(--gold-color);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(192, 192, 192, 0.1);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.info-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-family: 'Monaco', 'Menlo', monospace;
+}
+
+.btn-icon {
+    background: rgba(212, 175, 55, 0.2);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    color: var(--gold-color);
+    transition: all 0.2s;
+}
+
+.btn-icon:hover {
+    background: rgba(212, 175, 55, 0.3);
+    box-shadow: var(--gold-shadow);
+}
+
+.order-card-info {
+    margin-top: 1rem;
+}
+
+.order-card-info p {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+</style>
+
+<script>
+let cardVisible = false;
+const cardNumber = "4532 8765 4321 3092";
+const cardCVV = "123";
+
+function toggleCardVisibility() {
+    cardVisible = !cardVisible;
+    const digits = document.querySelectorAll('.card-digit');
+    const eyeBtn = document.getElementById('eyeButton');
+    const infoCardNumber = document.getElementById('infoCardNumber');
+    const infoCVV = document.getElementById('infoCVV');
+    
+    if (cardVisible) {
+        // Show card number
+        const parts = cardNumber.split(' ');
+        digits[0].textContent = parts[0];
+        digits[1].textContent = parts[1];
+        digits[2].textContent = parts[2];
+        digits[3].textContent = parts[3];
+        digits.forEach(d => d.classList.remove('hidden'));
+        
+        // Show in info
+        infoCardNumber.textContent = cardNumber;
+        infoCVV.textContent = cardCVV;
+        
+        // Close eye icon - add stroke through it
+        eyeBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+        eyeBtn.classList.add('eye-closed');
+    } else {
+        // Hide card number
+        digits[0].textContent = '****';
+        digits[1].textContent = '****';
+        digits[2].textContent = '****';
+        digits.forEach(d => d.classList.add('hidden'));
+        digits[3].classList.remove('hidden');
+        
+        // Hide in info
+        infoCardNumber.textContent = '**** **** **** 3092';
+        infoCVV.textContent = '***';
+        
+        // Open eye icon
+        eyeBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+        eyeBtn.classList.remove('eye-closed');
+    }
+}
+
+function copyCardNumber() {
+    const cardNum = cardVisible ? cardNumber : '**** **** **** 3092';
+    navigator.clipboard.writeText(cardNum);
+    alert('Card number copied to clipboard!');
+}
+
+function showOrderCardModal() {
+    document.getElementById('orderCardModal').style.display = 'block';
+}
+
+function closeOrderModal() {
+    document.getElementById('orderCardModal').style.display = 'none';
+    document.getElementById('orderCardModal').querySelector('form')?.reset();
+    document.getElementById('orderCardResult').innerHTML = '';
+}
+
+function submitCardOrder() {
+    const cardType = document.getElementById('cardType').value;
+    const address = document.getElementById('deliveryAddress').value;
+    const resultDiv = document.getElementById('orderCardResult');
+    
+    if (!address.trim()) {
+        resultDiv.innerHTML = '<p class="error">Please enter a delivery address</p>';
+        return;
+    }
+    
+    const cardTypes = {
+        'standard': 'Standard Card',
+        'premium': 'Premium Gold Card',
+        'platinum': 'Platinum Card'
+    };
+    
+    resultDiv.innerHTML = `<p class="success">✓ ${cardTypes[cardType]} ordered successfully! Delivery expected in 7-10 business days.</p>`;
+    setTimeout(() => closeOrderModal(), 3000);
+}
+
+function freezeCard() {
+    if (confirm('Are you sure you want to freeze your card? You can unfreeze it anytime.')) {
+        alert('Card frozen successfully. You can unfreeze it from Card Settings.');
+    }
+}
+
+function showCardSettings() {
+    alert('Card settings coming soon!');
+}
+
+window.onclick = function(e) {
+    const modal = document.getElementById('orderCardModal');
+    if (e.target == modal) {
+        closeOrderModal();
+    }
+}
+</script>
+{% endblock %}
+

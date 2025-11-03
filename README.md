@@ -21,6 +21,8 @@ solved using *advanced DSA techniques*.
 
 ## 🧠 Tech Stack
 - **Language:** Python 3.12  
+- **Web Framework:** Flask 3.0
+- **Frontend:** HTML5, CSS3, JavaScript
 - **Testing:** Pytest  
 - **Algorithms:** Graphs, DP, Trees, Union-Find, HashMaps  
 - **Complexity:** O(E log V) (routing) | O(log n) (segment updates) | O(α(n)) (fraud union)
@@ -28,10 +30,38 @@ solved using *advanced DSA techniques*.
 ---
 
 ## 🧪 Run Locally
+
+### Web Application (Recommended)
 ```bash
 git clone https://github.com/ChaitanyaHandore/algobank.git
 cd algobank/AlgoBank
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-pytest -v       # run all tests
+python app.py
+```
+Then open your browser to **http://localhost:8080**
+
+**Note:** If port 8080 is in use, the app will use the PORT environment variable. Port 5000 may conflict with macOS AirPlay Receiver.
+
+**Demo Login:** Any username/password works in demo mode.
+
+### Command Line Demo
+```bash
 python3 -m src.main   # run full simulation
+```
+
+### Run Tests
+```bash
+pytest -v       # run all tests
+```
+
+---
+
+## 🌐 Web Application Features
+
+- **🏠 Dashboard** - View account balance and quick actions
+- **💸 Money Transfer** - Transfer funds between accounts
+- **📊 Transaction History** - View all past transactions
+- **🏧 ATM Calculator** - Optimize note dispensation using DP
+- **🌐 Bank Routing** - Find cheapest interbank routes using Dijkstra's
+- **🕵️ Fraud Detection** - Detect connected suspicious accounts using DSU

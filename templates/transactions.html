@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Transactions - AlgoBank{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="section-box">
+        <div class="section-box-header">
+            <h3>Transaction History</h3>
+            <button class="btn btn-primary" onclick="loadTransactions()">🔄 Refresh</button>
+        </div>
+        <div class="section-box-content">
+            <div id="transactions-container" class="transactions-container">
+                <p class="loading">Loading transactions...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function loadTransactions() {
+        const container = document.getElementById('transactions-container');
+        container.innerHTML = '<p class="loading">Loading...</p>';
+        
+        fetch('/api/transactions')
+            .then(r => r.json())
+            .then(data => {
+                if (data.transactions && data.transactions.length > 0) {
+                    container.innerHTML = data.transactions.map(t => `
+                        <div class="transaction-item detailed">
+                            <div class="transaction-icon-large">
+                                ${parseFloat(t.amount) < 0 ? '📤' : '📥'}
+                            </div>
+                            <div class="transaction-main">
+                                <div class="transaction-info">
+                                    <span class="transaction-desc">${t.description || 'Transaction'}</span>
+                                    <div class="transaction-meta">
+                                        <span class="transaction-counterparty">${t.counterparty || 'N/A'}</span>
+                                        <span class="transaction-separator">•</span>
+                                        <span class="transaction-date">${t.date || 'Today'}</span>
+                                        <span class="transaction-time">${t.time || ''}</span>
+                                    </div>
+                                    <span class="transaction-id">Ref: ${t.id}</span>
+                                </div>
+                                <div class="transaction-right">
+                                    <div class="transaction-amount ${parseFloat(t.amount) < 0 ? 'negative' : 'positive'}">
+                                        ${parseFloat(t.amount) > 0 ? '+' : ''}€${Math.abs(parseFloat(t.amount)).toFixed(2)}
+                                    </div>
+                                    <span class="transaction-status">${t.status || 'Completed'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p class="empty-state">No transactions found</p>';
+                }
+            })
+            .catch(err => {
+                container.innerHTML = '<p class="error">Error loading transactions</p>';
+            });
+    }
+    
+    loadTransactions();
+</script>
+{% endblock %}
+

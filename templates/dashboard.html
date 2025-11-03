@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AlgoBank{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="section-box">
+        <div class="section-box-header">
+            <div>
+                <h2>Welcome back, {{ session.get('user_id', 'User') }}</h2>
+                <div class="account-info-row">
+                    <span class="account-number-display">{{ account_display }}</span>
+                    <span class="security-badge">🔒 Secure Connection</span>
+                    <span class="date-display" id="currentDate"></span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <span class="badge badge-success">✓ Online Banking</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Account Overview Section -->
+    <div class="section-box account-overview">
+        <div class="section-box-header">
+            <h3>Account Overview</h3>
+        </div>
+        <div class="section-box-content">
+            <div class="accounts-grid">
+                <div class="account-card" onclick="viewStatement()" style="cursor: pointer;">
+                    <div class="account-type">Checking Account</div>
+                    <div class="account-number-small">{{ account_display }}</div>
+                    <div class="account-balance-large">€{{ "{:,.2f}".format(balance) }}</div>
+                    <div class="account-balance-label">Available Balance</div>
+                    <div style="margin-top: 1rem; text-align: center;">
+                        <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); viewStatement()">View Statement →</button>
+                    </div>
+                </div>
+                <div class="account-card placeholder">
+                    <div class="account-type">Savings Account</div>
+                    <div class="account-number-small">****1234</div>
+                    <div class="account-balance-large">€--</div>
+                    <div class="account-placeholder">Link Account</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="dashboard-grid">
+        <div class="card account-summary">
+            <div class="card-header">
+                <h3>Account Summary</h3>
+            </div>
+            <div class="card-body">
+                <div class="summary-item">
+                    <span class="summary-label">Total Transactions</span>
+                    <span class="summary-value">{{ transaction_count }}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Account Status</span>
+                    <span class="summary-value badge-success">Active</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Last Login</span>
+                    <span class="summary-value">{{ "Today" }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card quick-actions">
+            <div class="card-header">
+                <h3>Quick Actions</h3>
+            </div>
+            <div class="card-body">
+                <div class="action-grid">
+                    <div class="action-item" onclick="showTransferModal()">
+                        <div class="action-icon">💸</div>
+                        <div class="action-label">Transfer</div>
+                    </div>
+                    <a href="{{ url_for('transactions_page') }}" class="action-item">
+                        <div class="action-icon">📊</div>
+                        <div class="action-label">Transactions</div>
+                    </a>
+                    <a href="{{ url_for('atm_page') }}" class="action-item">
+                        <div class="action-icon">🏧</div>
+                        <div class="action-label">ATM</div>
+                    </a>
+                    <a href="{{ url_for('loans_page') }}" class="action-item">
+                        <div class="action-icon">💰</div>
+                        <div class="action-label">Loans</div>
+                    </a>
+                    <a href="{{ url_for('investments_page') }}" class="action-item">
+                        <div class="action-icon">📈</div>
+                        <div class="action-label">Invest</div>
+                    </a>
+                    <a href="{{ url_for('services_page') }}" class="action-item">
+                        <div class="action-icon">⚡</div>
+                        <div class="action-label">Services</div>
+                    </a>
+                    <a href="{{ url_for('cards_page') }}" class="action-item">
+                        <div class="action-icon">💳</div>
+                        <div class="action-label">Cards</div>
+                    </a>
+                    <a href="{{ url_for('profile_page') }}" class="action-item">
+                        <div class="action-icon">👤</div>
+                        <div class="action-label">Profile</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card recent-transactions">
+            <div class="card-header">
+                <h3>Recent Transactions</h3>
+                <a href="{{ url_for('transactions_page') }}" class="view-all">View All</a>
+            </div>
+            <div class="card-body">
+                <div id="recent-transactions-list" class="transactions-list">
+                    <p class="loading">Loading transactions...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transfer Modal -->
+<div id="transferModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeTransferModal()">&times;</span>
+        <h2>Transfer Funds</h2>
+        <form id="transferForm" onsubmit="submitTransfer(event)">
+            <div class="form-group">
+                <label for="toAccount">To Account</label>
+                <input type="text" id="toAccount" name="to_account" required placeholder="Enter recipient account ID">
+            </div>
+            <div class="form-group">
+                <label for="amount">Amount (EUR)</label>
+                <input type="number" id="amount" name="amount" step="0.01" min="0.01" required placeholder="0.00">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Transfer</button>
+        </form>
+        <div id="transferResult" class="result-message"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function refreshBalance() {
+        fetch('/api/balance')
+            .then(r => r.json())
+            .then(data => {
+                if (data.balance) {
+                    document.querySelector('.balance-amount .amount').textContent = data.balance;
+                }
+            });
+    }
+    
+    function showTransferModal() {
+        document.getElementById('transferModal').style.display = 'block';
+    }
+    
+    function closeTransferModal() {
+        document.getElementById('transferModal').style.display = 'none';
+        document.getElementById('transferForm').reset();
+        document.getElementById('transferResult').innerHTML = '';
+    }
+    
+    function submitTransfer(e) {
+        e.preventDefault();
+        const formData = {
+            to_account: document.getElementById('toAccount').value,
+            amount: parseFloat(document.getElementById('amount').value)
+        };
+        
+        fetch('/api/transfer', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(formData)
+        })
+        .then(r => r.json())
+        .then(data => {
+            const resultDiv = document.getElementById('transferResult');
+            if (data.success) {
+                resultDiv.innerHTML = '<p class="success">✓ Transfer successful!</p>';
+                refreshBalance();
+                loadRecentTransactions();
+                setTimeout(() => {
+                    closeTransferModal();
+                }, 2000);
+            } else {
+                resultDiv.innerHTML = '<p class="error">✗ ' + (data.error || 'Transfer failed') + '</p>';
+            }
+        });
+    }
+    
+    function loadRecentTransactions() {
+        fetch('/api/transactions')
+            .then(r => r.json())
+            .then(data => {
+                const listDiv = document.getElementById('recent-transactions-list');
+                if (data.transactions && data.transactions.length > 0) {
+                    const recent = data.transactions.slice(-5).reverse();
+                    listDiv.innerHTML = recent.map(t => `
+                        <div class="transaction-item">
+                            <div class="transaction-icon">
+                                ${parseFloat(t.amount) < 0 ? '📤' : '📥'}
+                            </div>
+                            <div class="transaction-info">
+                                <span class="transaction-desc">${t.description || 'Transaction'}</span>
+                                <span class="transaction-meta">
+                                    ${t.counterparty || ''} • ${t.date || 'Today'} ${t.time || ''}
+                                </span>
+                            </div>
+                            <div class="transaction-amount ${parseFloat(t.amount) < 0 ? 'negative' : 'positive'}">
+                                ${parseFloat(t.amount) > 0 ? '+' : ''}€${Math.abs(parseFloat(t.amount)).toFixed(2)}
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    listDiv.innerHTML = '<p>No transactions yet</p>';
+                }
+            });
+    }
+    
+    window.onclick = function(event) {
+        const modal = document.getElementById('transferModal');
+        if (event.target == modal) {
+            closeTransferModal();
+        }
+    }
+    
+    // Load transactions on page load
+    loadRecentTransactions();
+    
+    // Display current date
+    function updateDate() {
+        const now = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
+    }
+    updateDate();
+    
+    function viewStatement() {
+        window.location.href = "{{ url_for('statement_page') }}";
+    }
+</script>
+{% endblock %}
+

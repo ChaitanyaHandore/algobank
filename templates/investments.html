@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Investments - AlgoBank{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="section-box">
+        <div class="section-box-header">
+            <div>
+                <h3>Investment Products</h3>
+                <p class="page-subtitle">Grow your wealth with our investment options</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="investments-grid">
+        {% for inv in investment_types %}
+        <div class="investment-card">
+            <div class="investment-header">
+                <h4>{{ inv.name }}</h4>
+                <div class="interest-rate">{{ inv.interest }}</div>
+            </div>
+            <div class="investment-details">
+                <div class="investment-detail-item">
+                    <span class="detail-label">Minimum Amount</span>
+                    <span class="detail-value">€{{ "{:,}".format(inv.min_amount) }}</span>
+                </div>
+                <div class="investment-detail-item">
+                    <span class="detail-label">Tenure</span>
+                    <span class="detail-value">{{ inv.tenure }}</span>
+                </div>
+                <div class="investment-detail-item">
+                    <span class="detail-label">Interest Rate</span>
+                    <span class="detail-value highlight">{{ inv.interest }} p.a.</span>
+                </div>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="openInvestment('{{ inv.type }}', '{{ inv.name }}')">Open {{ inv.type }}</button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Investment Modal -->
+<div id="investmentModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeInvestmentModal()">&times;</span>
+        <h2 id="investmentTitle">Open Investment</h2>
+        <form onsubmit="submitInvestment(event)">
+            <input type="hidden" id="investmentType">
+            <div class="form-group">
+                <label>Investment Amount (EUR)</label>
+                <input type="number" id="investmentAmount" step="0.01" min="1000" required placeholder="Enter amount">
+            </div>
+            <div class="form-group">
+                <label>Tenure</label>
+                <select id="investmentTenure" required>
+                    <option value="1">1 Year</option>
+                    <option value="2">2 Years</option>
+                    <option value="3">3 Years</option>
+                    <option value="5" selected>5 Years</option>
+                    <option value="10">10 Years</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Open Investment</button>
+        </form>
+        <div id="investmentResult"></div>
+    </div>
+</div>
+
+<script>
+function openInvestment(type, name) {
+    document.getElementById('investmentType').value = type;
+    document.getElementById('investmentTitle').textContent = `Open ${name}`;
+    document.getElementById('investmentModal').style.display = 'block';
+}
+
+function closeInvestmentModal() {
+    document.getElementById('investmentModal').style.display = 'none';
+    document.getElementById('investmentModal').querySelector('form').reset();
+    document.getElementById('investmentResult').innerHTML = '';
+}
+
+function submitInvestment(e) {
+    e.preventDefault();
+    const type = document.getElementById('investmentType').value;
+    const amount = parseFloat(document.getElementById('investmentAmount').value);
+    
+    fetch('/api/investment/open', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({type: type, amount: amount})
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('investmentResult').innerHTML = 
+            data.success ? `<p class="success">✓ ${data.message}</p>` : `<p class="error">✗ ${data.error}</p>`;
+        if (data.success) setTimeout(() => closeInvestmentModal(), 2000);
+    });
+}
+
+window.onclick = function(e) {
+    if (e.target.id == 'investmentModal') {
+        closeInvestmentModal();
+    }
+}
+</script>
+
+<style>
+.investments-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.investment-card {
+    background: linear-gradient(135deg, #909090 0%, #a0a0a0 50%, #959595 100%);
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 2px solid rgba(212, 175, 55, 0.4);
+    box-shadow: var(--shadow-md), 0 0 20px rgba(144, 144, 144, 0.2);
+    transition: all 0.3s ease;
+}
+
+.investment-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg), 0 0 30px rgba(212, 175, 55, 0.3);
+    border-color: rgba(212, 175, 55, 0.6);
+}
+
+.investment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+}
+
+.investment-header h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    margin: 0;
+    background: var(--royal-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+.investment-details {
+    margin-bottom: 1.5rem;
+}
+
+.investment-detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(74, 74, 74, 0.3);
+}
+
+.detail-label {
+    color: #4a4a4a;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.detail-value {
+    font-weight: 600;
+    color: #2a2a2a;
+}
+
+.detail-value.highlight {
+    background: var(--royal-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.investment-detail-item:last-child {
+    border-bottom: none;
+}
+</style>
+{% endblock %}
+
